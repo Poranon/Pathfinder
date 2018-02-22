@@ -1,0 +1,10 @@
+TODO LIST
+- Entscheiden ob PrintWriter oder OutputDataWriter 								# done
+- Nicht nur byteweise empfangen und übertragen									# done
+- Dateigröße übertragen um nicht mit timeout stoppen zu müssen					# done
+- Evtl zu PrintWriter wechseln für Steuerbefehle, available() unzuverlässig		# nein, verguckt
+- android event um download progress anzuzeigen									
+- Fehlerbehandlungen															
+- IMPORTANT die verbleibenden bytes mitsenden beim testclient -> RETRY			# done
+- IMPORTANT Abbruch nach 3 RETRY versuchen mit 10sek timeout jeweils			# done
+- 

@@ -6,12 +6,39 @@
     android:layout_height="match_parent"
     tools:context="com.pathfinder.pathfindertestclient.MainActivity">
 
-    <Button
-        android:id="@+id/buttonConnect"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Connect"
-        tools:layout_editor_absoluteX="148dp"
-        tools:layout_editor_absoluteY="86dp" />
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <Button
+            android:id="@+id/buttonmappart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Mappart"
+            tools:layout_editor_absoluteX="146dp"
+            tools:layout_editor_absoluteY="202dp" />
+
+        <Button
+            android:id="@+id/buttonBremen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Bremen"
+            tools:layout_editor_absoluteX="148dp"
+            tools:layout_editor_absoluteY="144dp" />
+
+        <Button
+            android:id="@+id/buttonConnect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Connect"
+            tools:layout_editor_absoluteX="148dp"
+            tools:layout_editor_absoluteY="86dp" />
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

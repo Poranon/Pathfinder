@@ -20,8 +20,24 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view){
-                Log.d("DEBUG1", "[RECV]: registering UID");
-                Connector.registerUID();
+                Connector.request(getApplicationContext(), ConnectionCodes.REGISTER);
+            }
+        });
+
+        Log.d("DEBUG1", getApplicationContext().getFilesDir().toString());
+        Button map_bremen = (Button) findViewById(R.id.buttonBremen);
+        map_bremen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Connector.request(getApplicationContext(), ConnectionCodes.MAP_HB, getApplicationContext().getFilesDir().toString() + "/video.mp4", false);
+            }
+        });
+
+        Button map_part = (Button) findViewById(R.id.buttonmappart);
+        map_part.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Connector.request(getApplicationContext(), ConnectionCodes.MAPPART, getApplicationContext().getFilesDir().toString() + "/map_part.txt", false);
             }
         });
 
