@@ -9,7 +9,7 @@ public class ConnectionCodes {
     public static final byte REQUEST = 20;  // dec 10, 13 = \n\r
     public static final byte MAPPART = 25;
     public static final byte RETRY = 30;    // wiederaufnahme von downloads
-    public static final byte SPEED = 40;    // zum übertragen der Geschwindgkeit
+    public static final byte ACK = 40;    // eine bestätigung nach dem erhalt eines CustomPackages
 
     public static final byte MAP = 100;		// general request code for maps
     public static final byte MAP_MV = 101;	// Mecklenburg-Vorpommern

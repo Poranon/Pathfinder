@@ -21,6 +21,7 @@ public class AsynConnectionThread extends Thread {
 	private DataInputStream in_data;
 	private int ref = 0;
 	private int clientSpeed = 5120;
+	private int retries = 0;
 	
 	public AsynConnectionThread(Socket _client, int _ref) {
 		client = _client;
@@ -95,7 +96,7 @@ public class AsynConnectionThread extends Thread {
             try {
                 while(in_data.available()>0){
                     int tmp_byte = in_data.read();
-                    OSDepPrint.debug("ready byte: " + tmp_byte, ref);
+                    //OSDepPrint.debug("ready byte: " + tmp_byte, ref);
                     if(tmp_byte==ConnectionCodes.END) return ret_byte;
                     ret_byte = tmp_byte;
                     
@@ -152,6 +153,7 @@ public class AsynConnectionThread extends Thread {
 										// TODO Implement
 										break;
 		case ConnectionCodes.RETRY:		OSDepPrint.net("Retry requested", ref);
+										retries++;
 										retry();
 										break;
 		case -1:						// TODO Fehlerbehandlung
@@ -180,7 +182,7 @@ public class AsynConnectionThread extends Thread {
 			return -1;
 		}
 		OSDepPrint.net("Map requested (" + mapcode + ")", ref);
-		if(sendFile("/home/pollux/programms/video.mp4", 0)<0){
+		if(sendFile("/home/michael/pathfinder/video.mp4", 0)<0){
 			OSDepPrint.error("File transfer incomplete");
 			return -1;
 		}
@@ -218,7 +220,7 @@ public class AsynConnectionThread extends Thread {
 		
 		int code = getCode(5000);
 		// TODO implement switch statement
-		if(sendFile("/home/pollux/programms/video.mp4", remainingBytes)<0){
+		if(sendFile("/home/michael/pathfinder/video.mp4", remainingBytes)<0){
 			OSDepPrint.error("File transfer incomplete");
 			return -1;
 		}
@@ -234,7 +236,8 @@ public class AsynConnectionThread extends Thread {
 		long oldprogress = 0;
 		File filedata = new File(filepath);
 		long fileSize = filedata.length();
-		long dlspeedtimeout = 160000; // 160sek initial timeout
+		int dlspeedlimiter = 130 * 1000; // 130sek initial timeout
+		float dlspeed = 0.0f;
 		
 		
 		//send file size
@@ -253,24 +256,44 @@ public class AsynConnectionThread extends Thread {
 			
 			byte[] buffer = new byte[1048576];
 			do {
-				curr = in_file.read(buffer, 0, buffer.length);
-				progress += curr;
+				long offset = 0;
+				if(remainingBytes>0){
+					do{
+						curr = in_file.read(buffer, 0, buffer.length);
+						progress += curr;
+					} while((fileSize-remainingBytes)>progress);
+					offset = (1024*1024) - (progress - (fileSize - remainingBytes));
+					remainingBytes = 0;
+				} else {
+					curr = in_file.read(buffer, 0, buffer.length);
+					progress += curr;
+				}
+			
 				if(curr==-1) {
 					in_file.close();
 					break;
 				}
-				out_data.write(buffer, 0, curr);
-				out_data.flush();
+				long seconds = sendCustomPackage(buffer, (int)offset, curr, dlspeedlimiter);
+				if(seconds<0){
+					out_data.close();
+					OSDepPrint.printProgressStop();
+					return -1;
+				}
+				dlspeed = 1024.0f/((float)seconds/1000.0f);
 
-				if((progress-oldprogress)>=(clientSpeed*1024)){
-					OSDepPrint.printProgress(progress, fileSize-remainingBytes, ref);
-					oldprogress = progress;
-					sleep(900);
-				}	
+				
+				OSDepPrint.printProgress(progress, fileSize-remainingBytes, dlspeed, retries, ref);
+				oldprogress = progress;
+				
+				//if((progress-oldprogress)>=(500000)){
+				//	OSDepPrint.printProgress(progress, fileSize-remainingBytes, dlspeed, ref);
+				//	oldprogress = progress;
+					//sleep(900);
+				//}	
 			} while(curr>0);
 			
 			out_data.close();
-			OSDepPrint.printProgress(progress, fileSize-remainingBytes, ref);
+			OSDepPrint.printProgress(progress, fileSize-remainingBytes, dlspeed, retries, ref);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -279,6 +302,32 @@ public class AsynConnectionThread extends Thread {
 		}
 		OSDepPrint.printProgressStop();
 		return 0;
+	}
+	
+	//packetsize usually 1mb
+	// returns the time needed by the client to receive the file in seconds
+	private long sendCustomPackage(byte[] bytePackage, int offset, int packageSize, int delay) {
+		long time_start = System.currentTimeMillis();
+		try {
+			// send the packet
+			out_data.write(bytePackage, offset, packageSize-offset);
+			out_data.flush();
+			
+			// receive the time needed by the client (initial timeout of 130 seconds)
+			// 130 seconds are needed to transmit 1Mb of data with 64KBit/s
+			if(getCode(delay)==ConnectionCodes.ACK){
+				//TODO implement time counter#
+				long time_needed = (System.currentTimeMillis() - time_start); 
+				return time_needed;
+			} else {
+				return -1;
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return -1;
 	}
 	
 
