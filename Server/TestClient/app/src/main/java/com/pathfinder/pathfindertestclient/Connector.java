@@ -46,7 +46,7 @@ class ThreadRequest implements Runnable {
     private boolean is_retry = false;
     int retry_anticounter = 0;
     private Context context = null;
-    private NotificationManager notifcationManager = null;
+    private NotificationManager notificationManager = null;
     private NotificationCompat.Builder notificationCompatBuilder = null;
 
     public ThreadRequest(Context _context, byte _code) {
@@ -150,9 +150,9 @@ class ThreadRequest implements Runnable {
         while(timeout<5000){
             try {
                 while(in_data.available()>8){
-                    Log.d("DEBUG1", "available size: " + in_data.available());
+                    //Log.d("DEBUG1", "available size: " + in_data.available());
                     long tmp_byte = in_data.readLong();
-                    Log.d("DEBUG1", "byte size: " + tmp_byte);
+                    //Log.d("DEBUG1", "byte size: " + tmp_byte);
                     fileSize = tmp_byte;
                     tmp_byte = in_data.read();
                     if(tmp_byte!=ConnectionCodes.END){
@@ -171,14 +171,14 @@ class ThreadRequest implements Runnable {
 
         }
         if(fileSize<0) {
-            Log.d("DEBUG1", "invalid file size: " + fileSize);
+            //Log.d("DEBUG1", "invalid file size: " + fileSize);
             return -1;
         }
-        Log.d("DEBUG1", "file size: " + fileSize);
+        //Log.d("DEBUG1", "file size: " + fileSize);
         return fileSize;
     }
 
-    private int getSegment(String filepath, boolean append, long bytes, int tries){
+    private int getSegment(String filepath, boolean append, long bytes, int retries){
         FileOutputStream output = null;
         int timeout = 0;
 
@@ -201,7 +201,7 @@ class ThreadRequest implements Runnable {
                     while((curr = in_data.read(buffer))>0) {
                         output.write(buffer, 0, curr);
                         fileSizeCounter += curr;
-                        if((tries-retry_anticounter)>0){                                            // Diese Bedingung ist immer bei empfangen der ersten
+                        if((retries-retry_anticounter)>0){                                            // Diese Bedingung ist immer bei empfangen der ersten
                             writeCode(ConnectionCodes.ACK);                                         // Bytes in einem Retry-Versuch wahr. Da der Server
                             retry_anticounter++;                                                    // potenziell weniger als 1MB versendet und wir damit
                         }                                                                           // sonst timeouten.
@@ -209,15 +209,16 @@ class ThreadRequest implements Runnable {
                             writeCode(ConnectionCodes.ACK);
                             float value = (100.0f / (float)bytes) * (float) fileSizeCounter;
                             notificationCompatBuilder.setProgress(100, (int)value, false);
-                            notifcationManager.notify(1, notificationCompatBuilder.build());
+                            notificationManager.notify(1, notificationCompatBuilder.build());
                             oldFileSizeCounter = fileSizeCounter;
                             //Log.d("DEBUG1", "refresh notification bar");
+
                         }
                         if(fileSizeCounter == bytes) {
                             writeCode(ConnectionCodes.ACK);
                             Log.d("DEBUG1", "File completely downloaded");
                             notificationCompatBuilder.setContentText("Download complete").setProgress(0, 0, false);
-                            notifcationManager.notify(1, notificationCompatBuilder.build());
+                            notificationManager.notify(1, notificationCompatBuilder.build());
                             return fileSizeCounter;
                         }
                     }
@@ -233,7 +234,7 @@ class ThreadRequest implements Runnable {
                 writeCode(ConnectionCodes.ACK);
                 Log.d("DEBUG1", "File completely downloaded");
                 notificationCompatBuilder.setContentText("Download complete").setProgress(0, 0, false);
-                notifcationManager.notify(1, notificationCompatBuilder.build());
+                notificationManager.notify(1, notificationCompatBuilder.build());
                 return fileSizeCounter;
             }
 
@@ -248,17 +249,18 @@ class ThreadRequest implements Runnable {
         }
         if(fileSizeCounter==0){
             // connection timed out or still no connection
-            Log.d("DEBUG1", "no connection, retry (" + tries + ")");
+            Log.d("DEBUG1", "no connection, retry (" + retries + ")");
             return fileSizeCounter;
         } else if(fileSizeCounter < bytes){
             // something went wrong
-            Log.d("DEBUG1", "File part downloaded");
+            Log.d("DEBUG1", "File part downloaded, retry (" + retries + ")");
             return fileSizeCounter;
         } else {
-            // something went  completely wrong
-            Log.d("DEBUG1", "File download corrupt");
-            notificationCompatBuilder.setContentText("Download file corrupt").setProgress(0, 0, false);
-            notifcationManager.notify(1, notificationCompatBuilder.build());
+            // something went completely wrong
+            Log.d("DEBUG1", "File download corrupt, retry (" + retries + ")");
+            notificationCompatBuilder.setContentText("Download file corrupt");
+            notificationManager.notify(1, notificationCompatBuilder.build());
+            // notifcationManager.cancel(1);
             return -1;
         }
     }
@@ -266,7 +268,8 @@ class ThreadRequest implements Runnable {
     private int receiveFile(String filepath, boolean retry){
         long fileSize = getFileSize();
         long curr = 0;
-        int retries = 0;
+        int retries_visual = 1;
+        int retries_real = 0;
         boolean initAppend = false;
 
         if(fileSize<0) {
@@ -284,7 +287,7 @@ class ThreadRequest implements Runnable {
         }
 
         // initialise notification manager
-        notifcationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationCompatBuilder = new NotificationCompat.Builder(context);
         notificationCompatBuilder.setContentTitle("Map Download");
         notificationCompatBuilder.setContentText("Download in progress");
@@ -293,16 +296,22 @@ class ThreadRequest implements Runnable {
 
         // grabbing data
         curr += getSegment(filepath, initAppend, fileSize, 0);
-        while((retries < 3)&&(curr<fileSize)){
+        while((retries_real < 4)&&(curr<fileSize)){
+            long progress = curr;
+            Log.d("DEBUG1", "vvvvvvvvvv RETRY " + retries_visual + " vvvvvvvvvv");
             initialize(true);
             writeCode(ConnectionCodes.REQUEST);
             writeCode(ConnectionCodes.RETRY, fileSize-curr);
             writeCode(ConnectionCodes.MAP_HB);
-            //if((fileSize = getFileSize())<0); // return -1;
+            Log.d("DEBUG1", "[R] Grabbing file size...");
             getFileSize();
-            curr += getSegment(filepath, true, fileSize-curr, retries+1);
-            retries++;
+            Log.d("DEBUG1", "[R] Awaiting bytes");
+            curr += getSegment(filepath, true, fileSize-curr, retries_visual);
+            retries_visual++;
+            retries_real++;
+            if(progress < curr) retries_real = 0;
         }
+
 
         retry_anticounter = 0;
 

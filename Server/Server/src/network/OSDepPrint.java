@@ -80,7 +80,7 @@ public class OSDepPrint {
 		}
 	}
 	
-	public static void printProgress(long current, long maximum, float dlspeed, int retry_level, int ref){
+	public static void printProgress(long current, long maximum, float dlspeed, int ref){
 		if(is_debug){
 			long step = maximum/40;
 			if(step<1) step = 1;
@@ -95,9 +95,9 @@ public class OSDepPrint {
 			float max = (float) maximum;
 			float percent = (100.0f / max) * (float)current;
 			if(is_windows){
-				System.out.printf(" [ #" + ref + " ] " + "[DEBUG] Uploading [" + retry_level + "]|" + line + "| %.1f%%  %.1f KB/s\r", percent, dlspeed);
+				System.out.printf(" [ #" + ref + " ] " + "[DEBUG] Uploading [" + line + "] %.1f%%  %.1f KB/s\r", percent, dlspeed);
 			} else {
-				System.out.printf(" [ #" + ref + " ] " + "[\033[0;33mDEBUG\033[0m] Uploading [" + retry_level + "]|" + line + "| %.1f%%  %.1f KB/s\r", percent, dlspeed);
+				System.out.printf(" [ #" + ref + " ] " + "[\033[0;33mDEBUG\033[0m] Uploading [" + line + "] %.1f%%  %.1f KB/s\r", percent, dlspeed);
 			}
 		}
 	}

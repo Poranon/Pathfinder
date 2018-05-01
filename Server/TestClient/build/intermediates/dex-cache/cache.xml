@@ -3,21 +3,21 @@
 
     <item
         is-multidex="true"
-        jar="/home/pollux/Repositories/SWT/Pathfinder/Server/TestClient/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.2"
-        sha1="510aa6efc159983dfbffa676a0dae37568c0a46f">
-        <dex dex="/home/pollux/Repositories/SWT/Pathfinder/Server/TestClient/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run_0811ee3c5c2ee7451be90d2fff356d87b140c7d1/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
         jar="/home/pollux/Repositories/SWT/Pathfinder/Server/TestClient/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
         jumboMode="true"
         optimize="true"
         revision="25.0.2"
         sha1="6e6613a2c865f4ace94e78fc4808ea70b7f4ac62">
         <dex dex="/home/pollux/Repositories/SWT/Pathfinder/Server/TestClient/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_1ceeb6ec256389ee61653ed1e9cde1d54bb54a20/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/pollux/Repositories/SWT/Pathfinder/Server/TestClient/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="510aa6efc159983dfbffa676a0dae37568c0a46f">
+        <dex dex="/home/pollux/Repositories/SWT/Pathfinder/Server/TestClient/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run_0811ee3c5c2ee7451be90d2fff356d87b140c7d1/classes.dex" />
     </item>
 
 </items>

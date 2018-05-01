@@ -38,7 +38,7 @@ public class AsynServerListener extends Thread {
 				Socket newClient = new Socket();
 				newClient = client;												// ist das ne deep copy?
 				connCounter++;
-				System.out.println("[" + connCounter + "] " +  client.getInetAddress().toString().replace("/", "") + ":" + client.getLocalPort() + " connected");
+				System.out.println(" [ #" + connCounter + " ] " +  client.getInetAddress().toString().replace("/", "") + ":" + client.getLocalPort() + " connected");
 				AsynConnectionThread conn = new AsynConnectionThread(newClient, connCounter);
 				conn.start();
 				
